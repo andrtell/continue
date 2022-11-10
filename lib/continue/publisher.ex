@@ -9,13 +9,14 @@ defmodule Continue.Publisher do
 
   defimpl Collectable, for: Continue.Publisher do
     def into(%{topic: topic} = publisher) do
-      {:ok, fn
-        :ok, {:cont, message} ->
-          PubSub.broadcast(Continue.PubSub, topic, {:out, message})
-        
-        :ok, _ ->
-          publisher
-      end}
+      {:ok,
+       fn
+         :ok, {:cont, message} ->
+           PubSub.broadcast(Continue.PubSub, topic, {:publisher, message})
+
+         :ok, _ ->
+           publisher
+       end}
     end
   end
 end
