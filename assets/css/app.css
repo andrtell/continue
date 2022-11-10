@@ -1,6 +1,11 @@
 /* This file is for your main application CSS */
 @import "preflight.css";
 
+@import "element-pre.css";
+@import "element-code.css";
+
+@import "page-terminal-live.css";
+
 
 /* Alerts and form errors used by phx.new */
 .alert {
