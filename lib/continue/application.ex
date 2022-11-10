@@ -15,9 +15,10 @@ defmodule Continue.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Continue.PubSub},
       # Start the Endpoint (http/https)
-      ContinueWeb.Endpoint
+      ContinueWeb.Endpoint,
       # Start a worker by calling: Continue.Worker.start_link(arg)
       # {Continue.Worker, arg}
+      Continue.Runner
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
