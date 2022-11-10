@@ -17,7 +17,7 @@ defmodule ContinueWeb.Router do
   scope "/", ContinueWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", TerminalLive
   end
 
   # Other scopes may use custom stacks.
