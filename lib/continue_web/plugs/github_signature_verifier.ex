@@ -13,8 +13,7 @@ defmodule ContinueWeb.Plugs.GithubSignatureVerifier do
 
           req_signature_256 =
             :crypto.mac(:hmac, :sha256, @sign_key, req_body)
-            |> Base.encode16()
-            |> String.downcase()
+            |> Base.encode16(case: :lower)
 
           hub_signature_256 == "sha256=#{req_signature_256}"
 

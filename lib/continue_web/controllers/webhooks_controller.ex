@@ -3,16 +3,20 @@ defmodule ContinueWeb.WebhooksController do
 
   require Logger
 
+  alias Continue.Runner
+
   def github(%{assigns: %{github_signature_verified: true}} = conn, params) do
     [event] = get_req_header(conn, "x-github-event")
-    github_event(event, conn, params)
+    handle_event(event, conn, params)
+    json(conn, %{status: "ok"})
   end
 
-  def github(_conn, _params) do
-    Logger.warn("Github signature verification failed")
+  def github(conn, _params) do
+    Logger.warn("Github event signature verification failed: #{inspect(conn.body_params)}")
+    json(conn, %{status: "ok"})
   end
 
-  defp github_event(
+  defp handle_event(
          "push",
          %{
            body_params:
@@ -24,16 +28,16 @@ defmodule ContinueWeb.WebhooksController do
                  "url" => "https://github.com/andrtell/test-repo"
                }
              } = _body_params
-         } = conn,
+         } = _conn,
          _params
        ) do
-    Logger.info("Github push event received for andrtell/test-repo")
-    json(conn, %{status: "ok"})
+    Runner.run(Continue.Command, :build_and_push_to_registry!, [
+      "https://github.com/andrtell/test-repo",
+      ["registry.tell.nu/test-repo:latest"]
+    ])
   end
 
-  defp github_event( "push", conn, _params) do
-    Logger.warn("Push event not recognized: #{inspect(conn.body_params)}")
-    json(conn, %{status: "ok"})
+  defp handle_event(event, conn, _params) do
+    Logger.warn("Github event (#{event}) ignored: #{inspect(conn.body_params)}")
   end
-
 end
