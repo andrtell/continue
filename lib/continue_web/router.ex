@@ -1,6 +1,8 @@
 defmodule ContinueWeb.Router do
   use ContinueWeb, :router
 
+  alias ContinueWeb.Plugs.GithubSignatureVerifier
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -12,12 +14,19 @@ defmodule ContinueWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug GithubSignatureVerifier
   end
 
   scope "/", ContinueWeb do
     pipe_through :browser
 
     live "/", TerminalLive
+  end
+
+  scope "/", ContinueWeb do
+    pipe_through :api
+
+    post "/webhooks/github", WebhooksController, :github
   end
 
   # Other scopes may use custom stacks.

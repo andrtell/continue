@@ -34,5 +34,4 @@ defmodule Continue.Runner do
     File.rm_rf!(tmp_dir)
     {:noreply, :ok, state}
   end
-
 end

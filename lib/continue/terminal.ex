@@ -1,5 +1,4 @@
 defmodule Continue.Terminal do
-
   @topic "terminal"
 
   alias __MODULE__
@@ -17,11 +16,11 @@ defmodule Continue.Terminal do
   end
 
   def broadcast(text) do
-     PubSub.broadcast(
-       Continue.PubSub,
-       @topic,
-       {:terminal, Terminal.line_id(), text}
-     )
+    PubSub.broadcast(
+      Continue.PubSub,
+      @topic,
+      {:terminal, Terminal.line_id(), text}
+    )
   end
 
   def subscribe() do
