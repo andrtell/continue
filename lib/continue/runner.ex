@@ -3,6 +3,7 @@ defmodule Continue.Runner do
 
   alias Continue.Git
   alias Continue.Podman
+  alias Continue.Terminal
 
   # API 
 
@@ -24,9 +25,7 @@ defmodule Continue.Runner do
 
   @impl true
   def handle_call({:build, url, tags}, _from, state) do
-    Continue.Publisher.broadcast("terminal", "========================\n")
-    Continue.Publisher.broadcast("terminal", "==== STARTING BUILD ====\n")
-    Continue.Publisher.broadcast("terminal", "========================\n\n")
+    Terminal.broadcast("\n==== Start build ====\n\n")
     tmp_dir = Continue.File.mktemp!()
     Git.clone!(url, tmp_dir)
     Podman.build!(tmp_dir, tags)

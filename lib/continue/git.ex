@@ -1,5 +1,5 @@
 defmodule Continue.Git do
-  alias Continue.Publisher
+  alias Continue.Terminal
 
   def clone!(url, directory) do
     {_, 0} =
@@ -7,7 +7,7 @@ defmodule Continue.Git do
         "git",
         ["clone", url, directory],
         stderr_to_stdout: true,
-        into: Publisher.new("terminal")
+        into: Terminal.new()
       )
   end
 end

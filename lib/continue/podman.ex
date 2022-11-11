@@ -1,5 +1,5 @@
 defmodule Continue.Podman do
-  alias Continue.Publisher
+  alias Continue.Terminal
 
   def build!(directory, tags) do
     tag_map = Enum.flat_map(tags, fn tag -> ["-t", tag] end)
@@ -9,7 +9,7 @@ defmodule Continue.Podman do
         "podman",
         ["build", directory] ++ tag_map,
         stderr_to_stdout: true,
-        into: Publisher.new("terminal")
+        into: Terminal.new()
       )
   end
 
@@ -21,7 +21,7 @@ defmodule Continue.Podman do
         "podman",
         ["push", tag],
         stderr_to_stdout: true,
-        into: Publisher.new("terminal")
+        into: Terminal.new()
       )
 
     push!(other_tags)
@@ -35,7 +35,7 @@ defmodule Continue.Podman do
         "podman",
         ["image", "rm", tag],
         stderr_to_stdout: true,
-        into: Publisher.new("terminal")
+        into: Terminal.new()
       )
 
     image_rm!(other_tags)
@@ -47,7 +47,7 @@ defmodule Continue.Podman do
         "podman",
         ["image", "prune", "-a"],
         stderr_to_stdout: true,
-        into: Publisher.new("terminal")
+        into: Terminal.new()
       )
   end
 end
