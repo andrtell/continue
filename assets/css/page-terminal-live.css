@@ -1,9 +1,13 @@
 main.page-terminal-live {
-  height: 100vh;
   display: grid;
   justify-items: stretch;
   align-items: stretch;
   background-color: #222;
   color: #ee0;
+  height: 100vh;
+  ovwerflow: scroll;
 }
 
+body {
+  background: #222;
+}

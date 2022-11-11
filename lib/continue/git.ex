@@ -7,7 +7,7 @@ defmodule Continue.Git do
         "git",
         ["clone", url, directory],
         stderr_to_stdout: true,
-        into: Publisher.new("shell")
+        into: Publisher.new("terminal")
       )
   end
 end

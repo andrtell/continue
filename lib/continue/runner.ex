@@ -1,6 +1,6 @@
 defmodule Continue.Runner do
   use GenServer
- 
+
   alias Continue.Git
   alias Continue.Podman
 
@@ -13,7 +13,7 @@ defmodule Continue.Runner do
   def build(url, tags) do
     GenServer.call(Continue.Runner, {:build, url, tags}, :infinity)
   end
-  
+
   # OTP
 
   @impl true
@@ -24,7 +24,10 @@ defmodule Continue.Runner do
 
   @impl true
   def handle_call({:build, url, tags}, _from, state) do
-    tmp_dir = Continue.File.mktemp!
+    Continue.Publisher.broadcast("terminal", "========================\n")
+    Continue.Publisher.broadcast("terminal", "==== STARTING BUILD ====\n")
+    Continue.Publisher.broadcast("terminal", "========================\n\n")
+    tmp_dir = Continue.File.mktemp!()
     Git.clone!(url, tmp_dir)
     Podman.build!(tmp_dir, tags)
     Podman.push!(tags)
