@@ -12,7 +12,7 @@ defmodule Continue.Runner do
   end
 
   def build(url, tags) do
-    GenServer.call(Continue.Runner, {:build, url, tags}, :infinity)
+    GenServer.cast(Continue.Runner, {:build, url, tags})
   end
 
   # OTP
@@ -24,7 +24,7 @@ defmodule Continue.Runner do
   end
 
   @impl true
-  def handle_call({:build, url, tags}, _from, state) do
+  def handle_cast({:build, url, tags}, state) do
     Terminal.broadcast("\n==== Start build ====\n\n")
     tmp_dir = Continue.File.mktemp!()
     Git.clone!(url, tmp_dir)
@@ -32,6 +32,7 @@ defmodule Continue.Runner do
     Podman.push!(tags)
     Podman.image_rm!(tags)
     File.rm_rf!(tmp_dir)
-    {:reply, :ok, state}
+    {:noreply, :ok, state}
   end
+
 end
