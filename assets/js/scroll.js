@@ -6,6 +6,5 @@ function scrollToBottom(id){
 document.addEventListener('phx:update', phxUpdateListener);
 
 function phxUpdateListener(_event) {
-  console.log('phx:update');
-  scrollToBottom('terminal-container');
+  scrollToBottom('terminal');
 }

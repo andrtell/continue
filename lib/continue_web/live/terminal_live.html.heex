@@ -1,4 +1,4 @@
-<main id="terminal-container" class="page-terminal-live">
+<main class="page-terminal-live">
   <pre id="terminal" phx-update="append">
     <%= for message <- @messages do %>
       <code id={message.id}><%= message.text %></code>
