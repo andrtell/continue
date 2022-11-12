@@ -10,6 +10,9 @@ import Config
 config :continue,
   ecto_repos: [Continue.Repo]
 
+config :continue,
+  github_webhook_secret: "secret"
+
 # Configures the endpoint
 config :continue, ContinueWeb.Endpoint,
   url: [host: "localhost"],

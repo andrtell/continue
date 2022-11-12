@@ -16,6 +16,12 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  github_webhook_secret =
+    System.get_env("GITHUB_WEBHOOK_SECRET") ||
+      raise """
+      environment variable GITHUB_WEBHOOK_SECRET is missing.
+      """
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -58,6 +64,10 @@ if config_env() == :prod do
       raise """
       environment variable HTTPS_PORT is missing.
       """
+
+  # Github webhook secret
+
+  config :continue, github_webhook_secret: github_webhook_secret
 
   # Ecto
 

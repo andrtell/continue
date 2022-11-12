@@ -1,5 +1,9 @@
 import Config
 
+# Configure webhook secret
+config :continue,
+  github_webhook_secret: "4WtXWQnHOnAEvc+zRvscisbuqqiNhTi5ls+FpR+tFFOSm26VU/TsvMFYd7qA+jF5"
+
 # Configure your database
 config :continue, Continue.Repo,
   username: "postgres",
