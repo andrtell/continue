@@ -37,6 +37,27 @@ defmodule ContinueWeb.WebhooksController do
     ])
   end
 
+  defp handle_event(
+         "push",
+         %{
+           body_params:
+             %{
+               "after" => _after_SHA,
+               "ref" => "refs/heads/main",
+               "deleted" => false,
+               "repository" => %{
+                 "url" => "https://github.com/andrtell/continue"
+               }
+             } = _body_params
+         } = _conn,
+         _params
+       ) do
+    Runner.run(Continue.Command, :build_and_push_to_registry!, [
+      "https://github.com/andrtell/continue",
+      ["registry.tell.nu/continue:latest"]
+    ])
+  end
+
   defp handle_event(event, conn, _params) do
     Logger.warn("Github event (#{event}) ignored: #{inspect(conn.body_params)}")
   end
