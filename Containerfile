@@ -1,97 +1,123 @@
-# Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian instead of
-# Alpine to avoid DNS resolution issues in production.
-#
-# https://hub.docker.com/r/hexpm/elixir/tags?page=1&name=ubuntu
-# https://hub.docker.com/_/ubuntu?tab=tags
-#
-#
-# This file is based on these images:
-#
-#   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bullseye-20220801-slim - for the release image
-#   - https://pkgs.org/ - resource for finding needed packages
-#   - Ex: hexpm/elixir:1.14.1-erlang-25.1.1-debian-bullseye-20220801-slim
-#
-ARG ELIXIR_VERSION=1.14.1
-ARG OTP_VERSION=25.1.1
-ARG DEBIAN_VERSION=bullseye-20220801-slim
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Args
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG FEDORA_VERSION=37
+
+ARG BUILDER_IMAGE="fedora:${FEDORA_VERSION}"
+ARG RUNNER_IMAGE="fedora:${FEDORA_VERSION}"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Build
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 FROM ${BUILDER_IMAGE} as builder
 
-# install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
-    && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN dnf -y update && \
+    dnf -y install  procps util-linux \
+                    make automake gcc gcc-c++ kernel-devel \
+                    langpacks-en \
+                    erlang-xmerl \
+                    git elixir && \
+    dnf clean all && \ 
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
 
-# prepare build dir
-WORKDIR /app
-
-# install hex + rebar
-RUN mix local.hex --force && \
-    mix local.rebar --force
-
-# set build ENV
-ENV MIX_ENV="prod"
-
-# install mix dependencies
-COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
-RUN mkdir config
-
-# copy compile-time config files before we compile dependencies
-# to ensure any relevant config change will trigger the dependencies
-# to be re-compiled.
-COPY config/config.exs config/${MIX_ENV}.exs config/
-RUN mix deps.compile
-
-COPY priv priv
-
-COPY lib lib
-
-COPY assets assets
-
-# compile assets
-RUN mix assets.deploy
-
-# Compile the release
-RUN mix compile
-
-# Changes to config/runtime.exs don't require recompiling the code
-COPY config/runtime.exs config/
-
-COPY rel rel
-RUN mix release
-
-# start a new build stage so that the final image will only contain
-# the compiled release and other runtime necessities
-FROM ${RUNNER_IMAGE}
-
-RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
-
-# Set the locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+RUN echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+WORKDIR /app
+
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+ENV MIX_ENV="prod"
+ 
+COPY mix.exs mix.lock ./
+
+RUN mix deps.get --only $MIX_ENV
+RUN mkdir config
+
+COPY config/config.exs config/${MIX_ENV}.exs config/
+
+RUN mix deps.compile
+
+COPY priv priv
+COPY lib lib
+COPY assets assets
+
+RUN mix assets.deploy
+RUN mix compile
+
+COPY config/runtime.exs config/
+COPY rel rel
+
+RUN mix release
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Runner
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FROM ${RUNNER_IMAGE}
+
+RUN dnf -y update && \
+    rpm --setcaps shadow-utils 2>/dev/null && \
+    dnf -y install podman fuse-overlayfs \
+           libstdc++ openssl ncurses-libs \
+           glibc-langpack-en git openssl1.1 libgcrypt \ 
+           --exclude container-selinux && \
+    dnf clean all && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+RUN echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+RUN useradd container; \
+echo -e "container:1:999\ncontainer:1001:64535" > /etc/subuid; \
+echo -e "container:1:999\ncontainer:1001:64535" > /etc/subgid;
+
+ARG _REPO_URL="https://raw.githubusercontent.com/containers/podman/main/contrib/podmanimage/stable"
+
+ADD $_REPO_URL/containers.conf /etc/containers/containers.conf
+ADD $_REPO_URL/podman-containers.conf /home/container/.config/containers/containers.conf
+
+RUN mkdir -p /home/container/.local/share/containers && \
+    chown container:container -R /home/container && \
+    chmod 644 /etc/containers/containers.conf
+
+RUN sed -e 's|^#mount_program|mount_program|g' \
+           -e '/additionalimage.*/a "/var/lib/shared",' \
+           -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' \
+           /usr/share/containers/storage.conf \
+           > /etc/containers/storage.conf
+
+VOLUME /var/lib/containers
+VOLUME /home/containers/.local/share/containers
+
+RUN mkdir -p /var/lib/shared/overlay-images \
+             /var/lib/shared/overlay-layers \
+             /var/lib/shared/vfs-images \
+             /var/lib/shared/vfs-layers && \
+    touch /var/lib/shared/overlay-images/images.lock && \
+    touch /var/lib/shared/overlay-layers/layers.lock && \
+    touch /var/lib/shared/vfs-images/images.lock && \
+    touch /var/lib/shared/vfs-layers/layers.lock
+
+ENV _CONTAINERS_USERNS_CONFIGURED=""
+
 WORKDIR "/app"
+
 RUN chown nobody /app
 
-# set runner ENV
 ENV MIX_ENV="prod"
 
-# create user/group: container
-RUN groupadd -g 1000 container
-RUN useradd -u 1000 -g 1000 -M -d /app -s /usr/sbin/nologin container
-
-# Only copy the final release from the build stage
 COPY --from=builder --chown=container:root /app/_build/${MIX_ENV}/rel/continue ./
 
-# create alias continue -> app
 RUN ln -s /app/bin/continue /app/bin/app
 
 USER container
