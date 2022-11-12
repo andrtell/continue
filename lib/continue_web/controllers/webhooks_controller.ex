@@ -33,7 +33,8 @@ defmodule ContinueWeb.WebhooksController do
        ) do
     Runner.run(Continue.Command, :build_and_push_to_registry!, [
       "https://github.com/andrtell/test-repo",
-      ["registry.tell.nu/test-repo:latest"]
+      ["registry.tell.nu/test-repo:latest"],
+      []
     ])
   end
 
@@ -54,7 +55,8 @@ defmodule ContinueWeb.WebhooksController do
        ) do
     Runner.run(Continue.Command, :build_and_push_to_registry!, [
       "https://github.com/andrtell/continue",
-      ["registry.tell.nu/continue:latest"]
+      ["registry.tell.nu/continue:latest"],
+      ["continue01"]
     ])
   end
 

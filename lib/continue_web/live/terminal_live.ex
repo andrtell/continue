@@ -5,7 +5,12 @@ defmodule ContinueWeb.TerminalLive do
 
   def mount(_params, _session, socket) do
     Terminal.subscribe()
-    socket = assign(socket, :messages, [])
+    socket = assign(socket, :messages, [
+      %{id: "1", text: "░█▀▀░█▀█░█▀█░▀█▀░▀█▀░█▀█░█░█░█▀▀\n"},
+      %{id: "2", text: "░█░░░█░█░█░█░░█░░░█░░█░█░█░█░█▀▀\n"},
+      %{id: "3", text: "░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀░▀░▀▀▀░▀▀▀\n"},
+      %{id: "4", text: "\nWaiting for work...\n\n"}
+    ])
     {:ok, socket, temporary_assigns: [messages: []]}
   end
 

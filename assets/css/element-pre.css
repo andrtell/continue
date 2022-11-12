@@ -2,5 +2,6 @@ pre {
   font-family: 'Roboto Mono', monospace;
   padding: 2rem;
   overflow: scroll;
+  line-height: 1em;
 }
 
