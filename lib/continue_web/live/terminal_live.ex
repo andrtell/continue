@@ -9,7 +9,7 @@ defmodule ContinueWeb.TerminalLive do
       %{id: "1", text: "░█▀▀░█▀█░█▀█░▀█▀░▀█▀░█▀█░█░█░█▀▀\n"},
       %{id: "2", text: "░█░░░█░█░█░█░░█░░░█░░█░█░█░█░█▀▀\n"},
       %{id: "3", text: "░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀░▀░▀▀▀░▀▀▀\n"},
-      %{id: "4", text: "\nWaiting for work...\n\n"}
+      %{id: "4", text: "\nWaiting for work... David!\n\n"}
     ])
     {:ok, socket, temporary_assigns: [messages: []]}
   end
